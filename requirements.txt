@@ -1,0 +1,41 @@
+- Schedule
++ Create a new Schedule
++ delete a Schedule
++ update a Schedule
+- Design the Syntax when you input the information the job
++ update the table to choose the Schedule
+ I want a list of the schedules
+- Income 
+==================
+from flask import Flask, render_template
+from google.oauth2 import service_account
+from googleapiclient.discovery import build
+
+app = Flask(__name__)
+
+# Google Sheets API setup
+SERVICE_ACCOUNT_FILE = 'path/to/your-service-account-file.json'
+SCOPES = ['https://www.googleapis.com/auth/spreadsheets.readonly']
+SPREADSHEET_ID = 'your-spreadsheet-id'
+RANGE_NAME = 'Sheet1!A1:G10'  # Update this range as needed
+
+credentials = service_account.Credentials.from_service_account_file(
+    SERVICE_ACCOUNT_FILE, scopes=SCOPES)
+sheets_service = build('sheets', 'v4', credentials=credentials)
+
+@app.route('/')
+def home():
+    return render_template('index.html')
+
+@app.route('/income')
+def income():
+    # Fetch data from Google Sheets
+    sheet = sheets_service.spreadsheets()
+    result = sheet.values().get(spreadsheetId=SPREADSHEET_ID, range=RANGE_NAME).execute()
+    values = result.get('values', [])
+
+    # Return the income template with the fetched data
+    return render_template('income.html', data=values)
+
+if __name__ == '__main__':
+    app.run(debug=True)
